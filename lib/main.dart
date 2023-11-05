@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'categorias.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ChistesProvider>(
+            create: (context) => ChistesProvider()),
+      ],
+      child: MaterialApp(
+        home: ChuckCategorias(),
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          scaffoldBackgroundColor: Color.fromARGB(255, 200, 229, 244),
-        ),
-        home: ChuckCategorias());
-  }
+      ),
+    ),
+  );
 }

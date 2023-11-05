@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:proyecto_chistes/dev.dart';
+import 'package:http/http.dart' as http;
+
+class ChistesProvider with ChangeNotifier {
+  dev? devChiste;
+
+  void setDevChiste(dev nuevoChiste) {
+    devChiste = nuevoChiste;
+    notifyListeners();
+  }
+}
 
 class ChuckCategorias extends StatelessWidget {
   final List<String> categories = [
-    "Animal",
-    "Celebridad",
-    "Dev??",
-    "Religion",
-    "Chance Aleatorio"
+    "dev",
+    "animal",
+    "celebrity",
+    "religion",
+    "random"
   ];
 
-  ChuckCategorias({super.key});
+  ChuckCategorias({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +45,7 @@ class ChuckCategorias extends StatelessWidget {
             ),
             SizedBox(height: 5),
             const Text(
-              "Seleccione una categoría por favor:",
+              "Select a category please:",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -45,6 +58,16 @@ class ChuckCategorias extends StatelessWidget {
                 );
               },
             ),
+            Consumer<ChistesProvider>(
+              builder: (context, chistesProvider, child) {
+                final devChiste = chistesProvider.devChiste;
+                if (devChiste != null) {
+                  return Text(devChiste.value);
+                } else {
+                  return Text("No se ha cargado un chiste aún.");
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -55,7 +78,7 @@ class ChuckCategorias extends StatelessWidget {
 class CategoryCard extends StatelessWidget {
   final String category;
 
-  const CategoryCard({super.key, required this.category});
+  CategoryCard({Key? key, required this.category}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -67,10 +90,37 @@ class CategoryCard extends StatelessWidget {
           style: const TextStyle(fontSize: 16),
         ),
         trailing: const Icon(Icons.arrow_forward),
-        onTap: () {
-          // print("Seleccionaste la categoría: $category");
+        onTap: () async {
+          final chiste = await getChuckNorrisJoke(category);
+          final chistesProvider =
+              Provider.of<ChistesProvider>(context, listen: false);
+          chistesProvider.setDevChiste(chiste);
         },
       ),
     );
+  }
+
+  // Solicitar chiste
+  Future<dev> getChuckNorrisJoke(String category) async {
+    final response = await http.get(
+      Uri.parse('https://api.chucknorris.io/jokes/random?category=$category'),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      dev devChiste = dev.fromJson(responseData);
+      return devChiste;
+    } else {
+      print('Error al obtener un chiste aleatorio: ${response.statusCode}');
+      return dev(
+        categories: [],
+        createdAt: DateTime.now(),
+        iconUrl: '',
+        id: '',
+        updatedAt: DateTime.now(),
+        url: '',
+        value: '',
+      );
+    }
   }
 }

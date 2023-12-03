@@ -19,7 +19,7 @@ class ChuckCategorias extends StatelessWidget {
     "animal",
     "celebrity",
     "religion",
-    "random"
+    "food"
   ];
 
   ChuckCategorias({Key? key});

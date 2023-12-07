@@ -115,15 +115,15 @@ class ChuckCategorias extends StatelessWidget {
           children: <Widget>[
             Image.asset(
               'assets/Imagen.jpg',
-              height: 200,
-              width: 200,
+              height: 100,
+              width: 100,
             ),
             SizedBox(height: 5),
             const Text(
               "Select a category please:",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             ListView.builder(
               shrinkWrap: true,
               itemCount: categories.length,
@@ -137,22 +137,43 @@ class ChuckCategorias extends StatelessWidget {
             Consumer<ChistesProvider>(
               builder: (context, chistesProvider, child) {
                 if (chistesProvider.devChiste != null) {
-                  return Column(
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Text(chistesProvider.devChiste!.value),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (chistesProvider.devChiste != null) {
-                            String chiste = chistesProvider.devChiste!.value;
-                            await chistesProvider.guardarFavorito(chiste);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Chiste agregado a favoritos.'),
-                              ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(chistesProvider.devChiste!.value),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (chistesProvider.devChiste != null) {
+                                  String chiste =
+                                      chistesProvider.devChiste!.value;
+                                  await chistesProvider.guardarFavorito(chiste);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Chiste agregado a favoritos.'),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text("Agregar a favoritos"),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => FavoritosPage()),
                             );
-                          }
-                        },
-                        child: Text("Agregar a favoritos"),
+                          },
+                          child: Text("Ver Favoritos"),
+                        ),
                       ),
                     ],
                   );
@@ -160,17 +181,6 @@ class ChuckCategorias extends StatelessWidget {
                   return Text("No se ha cargado un chiste aún.");
                 }
               },
-            ),
-            const SizedBox(height: 10),
-            // Mostrar la lista de chistes favoritos
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FavoritosPage()),
-                );
-              },
-              child: Text("Ver Favoritos"),
             ),
           ],
         ),

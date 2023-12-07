@@ -110,79 +110,78 @@ class ChuckCategorias extends StatelessWidget {
         ),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset(
-              'assets/Imagen.jpg',
-              height: 100,
-              width: 100,
-            ),
-            SizedBox(height: 5),
-            const Text(
-              "Select a category please:",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return CategoryCard(
-                  category: categories[index],
-                );
-              },
-            ),
-            // Mostrar la lista de chistes favoritos
-            Consumer<ChistesProvider>(
-              builder: (context, chistesProvider, child) {
-                if (chistesProvider.devChiste != null) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(chistesProvider.devChiste!.value),
-                            ElevatedButton(
-                              onPressed: () async {
-                                if (chistesProvider.devChiste != null) {
-                                  String chiste =
-                                      chistesProvider.devChiste!.value;
-                                  await chistesProvider.guardarFavorito(chiste);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Chiste agregado a favoritos.'),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Text("Agregar a favoritos"),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => FavoritosPage()),
-                            );
-                          },
-                          child: Text("Ver Favoritos"),
-                        ),
-                      ),
-                    ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Image.asset(
+                'assets/Imagen.jpg',
+                height: 200,
+                width: 200,
+              ),
+              SizedBox(height: 5),
+              const Text(
+                "Select a category please:",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  return CategoryCard(
+                    category: categories[index],
                   );
-                } else {
-                  return Text("No se ha cargado un chiste aún.");
-                }
-              },
-            ),
-          ],
+                },
+              ),
+              // Mostrar la lista de chistes favoritos
+              Consumer<ChistesProvider>(
+                builder: (context, chistesProvider, child) {
+                  if (chistesProvider.devChiste != null) {
+                    return Column(
+                      children: [
+                        Text(chistesProvider.devChiste!.value),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (chistesProvider.devChiste != null) {
+                              String chiste = chistesProvider.devChiste!.value;
+                              await chistesProvider.guardarFavorito(chiste);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Chiste agregado a favoritos.'),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text("Agregar a favoritos"),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Text("No se ha cargado un chiste aún.");
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              // Mostrar la lista de chistes favoritos
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => FavoritosPage()),
+                        );
+                      },
+                      child: Text("Ver Favoritos"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

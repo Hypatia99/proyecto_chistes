@@ -44,6 +44,7 @@ class LoginPage extends StatelessWidget {
               onPressed: () async {
                 try {
                   await authProvider.login(
+                    context,
                     emailController.text,
                     passwordController.text,
                   );

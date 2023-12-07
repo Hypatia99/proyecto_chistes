@@ -3,24 +3,99 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:proyecto_chistes/dev.dart';
 import 'package:http/http.dart' as http;
+import 'package:proyecto_chistes/favs.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChistesProvider with ChangeNotifier {
   dev? devChiste;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late String _userId = "";
+
+  String get userId => _userId;
+
+  void setUserId(String userId) {
+    _userId = userId;
+    notifyListeners();
+  }
+
+  Future<void> guardarFavorito(String chiste) async {
+    try {
+      await _firestore.collection('favoritos').add({
+        'userId': _userId,
+        'chiste': chiste,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      notifyListeners();
+    } catch (e) {
+      print('Error al guardar el chiste favorito en Firestore: $e');
+    }
+  }
 
   void setDevChiste(dev nuevoChiste) {
     devChiste = nuevoChiste;
+    //String _userId = "";
     notifyListeners();
   }
+
+  Future<void> agregarFavorito(String chiste) async {
+    try {
+      await _firestore
+          .collection('favoritos')
+          .doc(_userId) // Usamos el ID del usuario
+          .collection('chistes')
+          .add({
+        'chiste': chiste,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      notifyListeners(); // Notificamos a los oyentes que la lista ha cambiado
+    } catch (e) {
+      print('Error al agregar el chiste favorito en Firestore: $e');
+      throw e;
+    }
+  }
+
+  Future<List<String>> obtenerFavoritos() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('favoritos')
+          .where('userId', isEqualTo: _userId)
+          .get();
+
+      List<String> favoritos = querySnapshot.docs
+          .map((doc) => doc.get('chiste').toString())
+          .toList();
+      return favoritos;
+    } catch (e) {
+      print('Error al obtener chistes favoritos: $e');
+      return [];
+    }
+  }
+
+  Future<void> eliminarFavorito(String chiste) async {
+    try {
+      // Busca el documento que coincida con el usuario y el chiste
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('favoritos')
+          .where('userId', isEqualTo: _userId)
+          .where('chiste', isEqualTo: chiste)
+          .get();
+
+      // Elimina el documento encontrado
+      for (QueryDocumentSnapshot document in querySnapshot.docs) {
+        await document.reference.delete();
+      }
+
+      notifyListeners(); // Notifica a los oyentes que la lista ha cambiado
+    } catch (e) {
+      print('Error al eliminar el chiste favorito en Firestore: $e');
+      throw e;
+    }
+  }
 }
+//
 
 class ChuckCategorias extends StatelessWidget {
-  final List<String> categories = [
-    "dev",
-    "animal",
-    "celebrity",
-    "religion",
-    "food"
-  ];
+  final List<String> categories = ["dev", "animal", "celebrity", "religion"];
 
   ChuckCategorias({Key? key});
 
@@ -58,15 +133,44 @@ class ChuckCategorias extends StatelessWidget {
                 );
               },
             ),
+            // Mostrar la lista de chistes favoritos
             Consumer<ChistesProvider>(
               builder: (context, chistesProvider, child) {
-                final devChiste = chistesProvider.devChiste;
-                if (devChiste != null) {
-                  return Text(devChiste.value);
+                if (chistesProvider.devChiste != null) {
+                  return Column(
+                    children: [
+                      Text(chistesProvider.devChiste!.value),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (chistesProvider.devChiste != null) {
+                            String chiste = chistesProvider.devChiste!.value;
+                            await chistesProvider.guardarFavorito(chiste);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Chiste agregado a favoritos.'),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text("Agregar a favoritos"),
+                      ),
+                    ],
+                  );
                 } else {
                   return Text("No se ha cargado un chiste aún.");
                 }
               },
+            ),
+            const SizedBox(height: 10),
+            // Mostrar la lista de chistes favoritos
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FavoritosPage()),
+                );
+              },
+              child: Text("Ver Favoritos"),
             ),
           ],
         ),

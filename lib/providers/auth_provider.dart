@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:proyecto_chistes/categorias.dart';
 
 class AuthProvider extends ChangeNotifier {
   FirebaseAuth _auth = FirebaseAuth.instance;
@@ -21,6 +24,11 @@ class AuthProvider extends ChangeNotifier {
         // Actualizar
         User? updatedUser = _auth.currentUser;
         if (updatedUser != null) {
+          //Se crea subcoleccion pa favs uwu
+          await FirebaseFirestore.instance
+              .collection('favoritos')
+              .doc(updatedUser.uid)
+              .set({});
           notifyListeners();
         }
         //SnackBar
@@ -37,13 +45,16 @@ class AuthProvider extends ChangeNotifier {
   }
 
 //argumentos
-  Future<void> login(String email, String password) async {
+  Future<void> login(
+      BuildContext context, String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(
         //autentificacion
         email: email,
         password: password,
       );
+      Provider.of<ChistesProvider>(context, listen: false)
+          .setUserId(_auth.currentUser?.uid ?? "");
     } on FirebaseAuthException catch (e) {
       print(e);
       throw e;
